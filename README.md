@@ -306,3 +306,7 @@ If you love cats, and love reading cool graphics, vision, and learning papers, p
 ## Acknowledgments
 
 Our code is inspired by [pytorch-DCGAN](https://github.com/pytorch/examples/tree/master/dcgan).
+
+## Credits
+This project is based on [pytorch-CycleGAN-and-pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) by Jun-Yan Zhu and Taesung Park, licensed under the BSD 3-Clause License.  
+Modifications have been made for academic purposes as part of a computer vision assignment.
