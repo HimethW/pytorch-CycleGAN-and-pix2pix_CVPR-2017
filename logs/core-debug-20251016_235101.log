@@ -1,0 +1,9 @@
+{"time":"2025-10-16T23:51:07.4320631+05:30","level":"INFO","msg":"main: starting server","port-filename":"C:\\Users\\himet\\AppData\\Local\\Temp\\tmp467h5k5p\\port-69492.txt","pid":69492,"log-level":0,"disable-analytics":false,"shutdown-on-parent-exit":false,"enable-dcgm-profiling":false}
+{"time":"2025-10-16T23:51:07.4471772+05:30","level":"INFO","msg":"server: will exit if parent process dies","ppid":69492}
+{"time":"2025-10-16T23:51:07.4471772+05:30","level":"INFO","msg":"server: accepting connections","addr":{"IP":"127.0.0.1","Port":58210,"Zone":""}}
+{"time":"2025-10-16T23:51:07.4477175+05:30","level":"INFO","msg":"server: accepting connections","addr":{"Name":"C:\\Users\\himet\\AppData\\Local\\Temp\\wandb-69492-22172-2859162584\\socket","Net":"unix"}}
+{"time":"2025-10-16T23:51:09.6930043+05:30","level":"INFO","msg":"connection: ManageConnectionData: new connection created","id":"1(127.0.0.1:58219)"}
+{"time":"2025-10-16T23:51:09.7386169+05:30","level":"INFO","msg":"handleInformInit: received","streamId":"534aqqel","id":"1(127.0.0.1:58219)"}
+{"time":"2025-10-16T23:51:09.7406839+05:30","level":"ERROR","msg":"error symlinking debug-core.log","loggerPath":"C:\\Users\\himet\\AppData\\Local\\wandb\\logs\\core-debug-20251016_235101.log","targetPath":"D:\\sem5 stuff\\ComputerVision\\pytorch-CycleGAN-and-pix2pix_CVPR-2017\\wandb\\run-20251016_235101-534aqqel\\logs\\debug-core.log","error":"symlink C:\\Users\\himet\\AppData\\Local\\wandb\\logs\\core-debug-20251016_235101.log D:\\sem5 stuff\\ComputerVision\\pytorch-CycleGAN-and-pix2pix_CVPR-2017\\wandb\\run-20251016_235101-534aqqel\\logs\\debug-core.log: A required privilege is not held by the client."}
+{"time":"2025-10-16T23:51:15.3111441+05:30","level":"INFO","msg":"handleInformInit: stream started","streamId":"534aqqel","id":"1(127.0.0.1:58219)"}
+{"time":"2025-10-16T23:51:41.5050013+05:30","level":"INFO","msg":"server: parent process exited, terminating service process"}
