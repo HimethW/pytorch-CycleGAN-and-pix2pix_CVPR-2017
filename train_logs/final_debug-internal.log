@@ -1,0 +1,17 @@
+{"time":"2025-10-16T23:55:39.793501+05:30","level":"INFO","msg":"stream: starting","core version":"0.22.2"}
+{"time":"2025-10-16T23:55:45.0182562+05:30","level":"ERROR","msg":"monitor: failed to initialize GPU resource: monitor: could not get GPU binary port: timeout reading portfile C:\\Users\\himet\\AppData\\Local\\Temp\\wandb-system-monitor-portfile-1146643103"}
+{"time":"2025-10-16T23:55:45.4110884+05:30","level":"INFO","msg":"stream: created new stream","id":"kw4n3bce"}
+{"time":"2025-10-16T23:55:45.4110884+05:30","level":"INFO","msg":"handler: started","stream_id":"kw4n3bce"}
+{"time":"2025-10-16T23:55:45.4116156+05:30","level":"INFO","msg":"writer: started","stream_id":"kw4n3bce"}
+{"time":"2025-10-16T23:55:45.4116156+05:30","level":"INFO","msg":"stream: started","id":"kw4n3bce"}
+{"time":"2025-10-16T23:55:45.4116156+05:30","level":"INFO","msg":"sender: started","stream_id":"kw4n3bce"}
+{"time":"2025-10-17T00:56:28.4731819+05:30","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-10-17T01:07:24.5957957+05:30","level":"INFO","msg":"flowcontrol: backed up, offloading to disk","recordNumber":5033}
+{"time":"2025-10-17T01:07:34.077258+05:30","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-10-17T01:07:51.0406761+05:30","level":"INFO","msg":"flowcontrol: unblocked","totalOffloaded":27}
+{"time":"2025-10-17T02:53:18.4449396+05:30","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-10-17T03:28:23.5742385+05:30","level":"INFO","msg":"stream: closing","id":"kw4n3bce"}
+{"time":"2025-10-17T03:28:24.9729871+05:30","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-10-17T03:28:25.3795567+05:30","level":"INFO","msg":"handler: closed","stream_id":"kw4n3bce"}
+{"time":"2025-10-17T03:28:25.3813999+05:30","level":"INFO","msg":"sender: closed","stream_id":"kw4n3bce"}
+{"time":"2025-10-17T03:28:25.3813999+05:30","level":"INFO","msg":"stream: closed","id":"kw4n3bce"}
