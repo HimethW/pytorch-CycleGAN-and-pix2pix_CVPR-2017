@@ -3,28 +3,98 @@ import torch
 from PIL import Image, ImageDraw
 import numpy as np
 import os
-import json
+import sys
 import base64
 from io import BytesIO
+
+# Add the current directory to import project modules
+sys.path.append('.')
 
 class SketchToMapGenerator:
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = None
+        self.opt = None
+        self.load_model()
         
+    def load_model(self):
+        """Load the trained pix2pix model with all required attributes"""
+        try:
+            from models import create_model
+            
+            print("🔄 Loading trained model...")
+            
+            # Create a complete MockArgs with ALL required attributes
+            class MockArgs:
+                def __init__(self):
+                    # Required attributes from BaseOptions and TestOptions
+                    self.dataroot = './datasets/maps'
+                    self.name = 'maps_pix2pix_SketchToReal'
+                    self.checkpoints_dir = './checkpoints'
+                    self.model = 'pix2pix'
+                    self.isTrain = False
+                    self.gpu_ids = [0] if torch.cuda.is_available() else []
+                    self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                    self.preprocess = 'none'
+                    self.load_size = 256
+                    self.crop_size = 256
+                    self.batch_size = 1
+                    self.serial_batches = True
+                    self.no_flip = True
+                    self.dataset_mode = 'single'
+                    self.direction = 'BtoA'
+                    self.phase = 'test'
+                    self.num_test = 50
+                    self.eval = True
+                    self.use_wandb = False
+                    self.results_dir = './results'
+                    self.epoch = 'latest'
+                    self.load_iter = 0
+                    self.aspect_ratio = 1.0
+                    self.display_winsize = 256
+                    self.input_nc = 3
+                    self.output_nc = 3
+                    self.ngf = 64
+                    self.ndf = 64
+                    self.netG = 'unet_256'
+                    self.netD = 'basic'
+                    self.n_layers_D = 3
+                    self.norm = 'batch'
+                    self.init_type = 'normal'
+                    self.init_gain = 0.02
+                    self.no_dropout = True
+                    self.verbose = False
+                    self.suffix = ''
+                    self.max_dataset_size = float('inf')
+                    self.num_threads = 0
+            
+            # Create model with the complete options
+            self.opt = MockArgs()
+            self.model = create_model(self.opt)
+            self.model.setup(self.opt)
+            
+            print("✅ Model loaded successfully!")
+            print(f"📁 Model: {self.opt.name}")
+            print(f"🎯 Direction: {self.opt.direction} (Sketch -> Aerial)")
+            print(f"📱 Device: {self.opt.device}")
+            
+        except Exception as e:
+            print(f"❌ Error loading model: {e}")
+            import traceback
+            traceback.print_exc()
+            self.model = None
+    
     def extract_image_from_editor_data(self, editor_data):
         """Extract PIL Image from Gradio ImageEditor output"""
         try:
             if editor_data is None:
-                # Return a blank white image
-                return Image.new('RGB', (400, 400), 'white')
+                return Image.new('RGB', (256, 256), 'white')
                 
             if isinstance(editor_data, dict):
-                # Gradio ImageEditor returns a dict with 'image' and 'mask'
                 if 'image' in editor_data and editor_data['image'] is not None:
                     image_data = editor_data['image']
                     
                     if isinstance(image_data, str):
-                        # Base64 string (data:image/png;base64,...)
                         if image_data.startswith('data:'):
                             base64_data = image_data.split(',')[1]
                         else:
@@ -34,106 +104,92 @@ class SketchToMapGenerator:
                         image = Image.open(BytesIO(image_bytes))
                         return image
                     else:
-                        # Already a PIL Image or array
                         return image_data
                 else:
-                    # No image data, return blank
-                    return Image.new('RGB', (400, 400), 'white')
+                    return Image.new('RGB', (256, 256), 'white')
             else:
-                # Direct image input
                 return editor_data
                 
         except Exception as e:
             print(f"Error extracting image: {e}")
-            return Image.new('RGB', (400, 400), 'white')
+            return Image.new('RGB', (256, 256), 'white')
+    
+    def preprocess_sketch_for_model(self, sketch_image):
+        """Convert sketch to the exact format expected by the model"""
+        # Resize to model input size
+        sketch = sketch_image.resize((256, 256))
+        
+        # Convert to RGB if needed
+        if sketch.mode != 'RGB':
+            sketch = sketch.convert('RGB')
+        
+        # Convert to tensor and normalize to [-1, 1] like the dataset
+        sketch_array = np.array(sketch).transpose(2, 0, 1)  # HWC to CHW
+        sketch_tensor = torch.from_numpy(sketch_array).float()
+        sketch_tensor = (sketch_tensor / 255.0) * 2 - 1  # Normalize to [-1, 1]
+        
+        return sketch_tensor.unsqueeze(0).to(self.device)  # Add batch dimension and send to device
+    
+    def tensor_to_image(self, tensor):
+        """Convert model output tensor back to PIL Image"""
+        # Denormalize from [-1, 1] to [0, 255]
+        image = tensor.squeeze(0).cpu().float().numpy()
+        image = (np.transpose(image, (1, 2, 0)) + 1) / 2.0 * 255.0
+        image = np.clip(image, 0, 255).astype(np.uint8)
+        return Image.fromarray(image)
     
     def generate_aerial(self, sketch_data):
-        """Generate aerial view from sketch data"""
+        """Generate aerial view from sketch using the trained model"""
         try:
+            if self.model is None:
+                return self.create_error_image("Model not loaded. Please check console for errors.")
+            
             # Extract the actual image from the editor data
             sketch_image = self.extract_image_from_editor_data(sketch_data)
             
-            # Resize to model input size
-            sketch_image = sketch_image.resize((256, 256))
+            # Preprocess sketch for model input
+            sketch_tensor = self.preprocess_sketch_for_model(sketch_image)
             
-            # Generate aerial view based on colors
-            aerial_image = self.create_aerial_from_sketch(sketch_image)
+            print("🎨 Running model inference...")
             
+            # Run inference - same as test.py
+            with torch.no_grad():
+                # Set model input (B is sketch, A is aerial)
+                # For BtoA direction, we provide B and get fake_A
+                self.model.set_input({'B': sketch_tensor, 'A_paths': ['sketch_input']})
+                
+                # Run forward pass
+                self.model.test()
+                
+                # Get generated images
+                visuals = self.model.get_current_visuals()
+                
+                # Extract the generated aerial image (fake_A)
+                fake_aerial = visuals['fake_A']
+                
+                # Convert to PIL Image
+                aerial_image = self.tensor_to_image(fake_aerial)
+            
+            print("✅ Inference complete!")
             return aerial_image
             
         except Exception as e:
-            print(f"Generation error: {e}")
-            return self.create_error_image(f"Error: {str(e)}")
-    
-    def create_aerial_from_sketch(self, sketch):
-        """Create aerial view based on sketch colors"""
-        # Create base aerial image (sky blue background)
-        aerial = Image.new('RGB', (256, 256), color=(135, 206, 235))
-        draw = ImageDraw.Draw(aerial)
-        
-        # Convert sketch to numpy array for processing
-        sketch_array = np.array(sketch)
-        
-        # Process different colors
-        self.add_terrain_from_color(draw, sketch_array, [255, 255, 255], (100, 100, 100), 'road')      # White -> Gray roads
-        self.add_terrain_from_color(draw, sketch_array, [0, 255, 0], (34, 139, 34), 'vegetation')      # Green -> Dark green vegetation
-        self.add_terrain_from_color(draw, sketch_array, [0, 0, 255], (65, 105, 225), 'water')          # Blue -> Royal blue water
-        self.add_terrain_from_color(draw, sketch_array, [0, 0, 0], (169, 169, 169), 'building')        # Black -> Gray buildings
-        self.add_terrain_from_color(draw, sketch_array, [255, 255, 0], (255, 215, 0), 'special')       # Yellow -> Gold special areas
-        
-        return aerial
-    
-    def add_terrain_from_color(self, draw, sketch_array, target_color, output_color, terrain_type):
-        """Add terrain features based on color detection"""
-        try:
-            # Create mask for target color (with some tolerance)
-            tolerance = 10
-            mask = np.all(np.abs(sketch_array - target_color) <= tolerance, axis=-1)
-            
-            if not np.any(mask):
-                return
-            
-            # Get coordinates of the target color
-            coords = np.argwhere(mask)
-            
-            # Different rendering based on terrain type
-            if terrain_type == 'road':
-                # Draw roads as lines
-                for y, x in coords[::10]:
-                    draw.rectangle([x-2, y-1, x+2, y+1], fill=output_color)
-            
-            elif terrain_type == 'vegetation':
-                # Draw vegetation as scattered green areas
-                for y, x in coords[::6]:
-                    size = np.random.randint(2, 5)
-                    draw.ellipse([x-size, y-size, x+size, y+size], fill=output_color)
-            
-            elif terrain_type == 'water':
-                # Draw water as connected blue areas
-                for y, x in coords[::4]:
-                    size = np.random.randint(3, 7)
-                    draw.ellipse([x-size, y-size, x+size, y+size], fill=output_color)
-            
-            elif terrain_type == 'building':
-                # Draw buildings as rectangles
-                for y, x in coords[::8]:
-                    height = np.random.randint(4, 8)
-                    draw.rectangle([x-2, y-height, x+2, y], fill=output_color)
-            
-            elif terrain_type == 'special':
-                # Draw special areas as gold circles
-                for y, x in coords[::6]:
-                    draw.ellipse([x-3, y-3, x+3, y+3], fill=output_color)
-                    
-        except Exception as e:
-            print(f"Error adding {terrain_type}: {e}")
+            print(f"❌ Generation error: {e}")
+            import traceback
+            traceback.print_exc()
+            return self.create_error_image(f"Model error: {str(e)}")
     
     def create_error_image(self, message):
         """Create an error image with message"""
-        img = Image.new('RGB', (256, 256), color=(220, 220, 220))
+        img = Image.new('RGB', (256, 256), color=(240, 240, 240))
         draw = ImageDraw.Draw(img)
-        # Simple text display
-        draw.text((50, 120), message, fill='red')
+        # Split long messages
+        if len(message) > 30:
+            parts = [message[i:i+30] for i in range(0, len(message), 30)]
+            for i, part in enumerate(parts):
+                draw.text((10, 110 + i*20), part, fill='red')
+        else:
+            draw.text((10, 120), message, fill='red')
         return img
 
 # Create the interface
@@ -148,17 +204,11 @@ def create_drawing_interface():
     - 🔵 **BLUE**: Water & Rivers
     - ⚫ **BLACK**: Buildings & Structures
     - 🟡 **YELLOW**: Special Areas
-    
-    **✏️ How to use:**
-    1. Select a color from the palette
-    2. Draw your map features
-    3. Click 'Generate Aerial View'
-    4. See your sketch transformed!
     """
     
     with gr.Blocks(theme=gr.themes.Soft(), title="Sketch to Aerial Map") as interface:
-        gr.Markdown("# 🗺️ Sketch to Aerial Map Generator")
-        gr.Markdown("Draw your map using colors and generate a realistic aerial view!")
+        gr.Markdown("# 🗺️ Sketch to Realistic Aerial Generator")
+        gr.Markdown("Draw your map sketch and watch the AI transform it into a realistic aerial view!")
         
         with gr.Row():
             with gr.Column():
@@ -182,30 +232,23 @@ def create_drawing_interface():
                     clear_btn = gr.Button("🗑️ Clear Canvas", variant="secondary")
             
             with gr.Column():
-                gr.Markdown("### 🛰️ Generated Aerial View")
+                gr.Markdown("### 🛰️ AI-Generated Aerial View")
                 output_image = gr.Image(
                     type="pil",
                     height=400,
                     width=400,
-                    label="Aerial Map Output",
+                    label="Realistic Aerial Output",
                     show_download_button=True
                 )
         
-        # Instructions
-        gr.Markdown("""
-        ### 📝 Instructions:
-        1. **Choose a color** from the palette above the canvas
-        2. **Draw** your map features (roads, rivers, buildings, etc.)
-        3. **Click Generate** to see the aerial view
-        4. **Use different colors** for different terrain types
+        # Status indicator
+        status_text = gr.Markdown("")
         
-        ### 🎯 Tips:
-        - Draw thicker lines for better detection
-        - Use white for roads and paths
-        - Use blue for rivers and lakes
-        - Use green for parks and forests
-        - Use black for buildings
-        """)
+        # Update status based on model loading
+        if generator.model is not None:
+            status_text.value = "### ✅ Status: Model loaded and ready!"
+        else:
+            status_text.value = "### ❌ Status: Model failed to load. Check console for errors."
         
         # Button actions
         generate_btn.click(
@@ -227,13 +270,13 @@ def create_drawing_interface():
 
 if __name__ == "__main__":
     print("🚀 Starting Sketch to Aerial Map Generator")
-    print("📍 Server will start at: http://127.0.0.1:7860")
-    print("🎨 Draw with colors and see instant aerial views!")
+    print("📍 Server: http://127.0.0.1:7860")
+    print("🤖 Using trained pix2pix model: maps_pix2pix_SketchToReal")
+    print("🎯 Direction: Sketch (B) → Aerial (A)")
     
     interface = create_drawing_interface()
     interface.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        share=True,
-        debug=True  # Enable debug mode for more info
+        share=True
     )
