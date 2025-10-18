@@ -55,7 +55,7 @@ def run_inference():
         # Save
         out_path = os.path.join(output_dir, os.path.basename(img_path))
         out_img.save(out_path)
-        print(f"✅ Generated: {out_path}")
+        print(f"Generated: {out_path}")
 
 if __name__ == "__main__":
     run_inference()
