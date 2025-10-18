@@ -8,7 +8,7 @@ import torch
 
 def run_inference():
     # ---------------------- Configuration ----------------------
-    input_dir = "input/val"
+    input_dir = "./input"
     output_dir = "output/generated"
     model_name = "maps_pix2pix_SketchToReal"
     checkpoints_dir = "./checkpoints"
