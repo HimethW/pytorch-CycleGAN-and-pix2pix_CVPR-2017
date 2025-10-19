@@ -10,7 +10,7 @@ def run_inference():
     # ---------------------- Configuration ----------------------
     input_dir = "./input"
     output_dir = "output/generated"
-    model_name = "maps_pix2pix_SketchToReal"
+    model_name = "maps_pix2pix_SketchToReal2"
     checkpoints_dir = "./checkpoints"
     num_test = 5
     direction = "BtoA"
@@ -28,7 +28,7 @@ def run_inference():
     opt.serial_batches = True
     opt.no_flip = True
     opt.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    opt.num_threads = 0  # important for Windows
+    opt.num_threads = 0  
 
     # ---------------------- Create Dataset and Model ----------------------
     dataset = create_dataset(opt)
