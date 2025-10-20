@@ -81,7 +81,7 @@ def pad_single_image(input_path, output_path):
 
     # Save back to input folder (overwrite or new path)
     new_img.save(output_path)
-    print(f" Padded image saved: {output_path}")
+    print(f"✅ Padded image saved: {output_path}")
 
 if __name__ == "__main__":
     run_inference()

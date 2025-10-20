@@ -42,7 +42,7 @@ def generate_map(input_image):
         input_image = img
 
     if not isinstance(input_image, Image.Image):
-        return "❌ No image provided or invalid format.", None
+        return "No image provided or invalid format.", None
 
     # Ensure directories exist
     INPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -52,30 +52,30 @@ def generate_map(input_image):
 
     in_path = INPUT_DIR / "input.png"
     input_image.save(in_path)
-    print(f"✅ Saved input to {in_path}")
+    print(f"Saved input to {in_path}")
 
     # Run inference
     success = run_inference()
     if not success:
-        return "❌ Inference failed. Check console for details.", None
+        return "Inference failed", None
 
     # Find latest generated image
     time.sleep(1)
     gen_images = list(OUTPUT_DIR.glob("*.png")) + list(OUTPUT_DIR.glob("*.jpg"))
     if not gen_images:
-        return "❌ No output image found in ./output/generated", None
+        return "No output image found in ./output/generated", None
 
     latest = max(gen_images, key=os.path.getmtime)
-    print(f"✅ Found generated image: {latest}")
+    print(f"Found generated image: {latest}")
     output_image = Image.open(latest)
 
-    return "✅ Map generated successfully!", output_image
+    return "generated successfully!", output_image
 
 
 
 # --- UI ---
 with gr.Blocks(title="Sketch-to-Map Generator") as demo:
-    gr.Markdown("## 🗺️ Sketch to Map Generator")
+    gr.Markdown("## Web Generator")
     gr.Markdown("Draw or upload a sketch. The model will generate an aerial map.")
 
     with gr.Row():
@@ -84,10 +84,10 @@ with gr.Blocks(title="Sketch-to-Map Generator") as demo:
                 label="Draw or Upload a Sketch",
                 height=400,
                 width=400,
-                brush=gr.Brush(colors=["#cae0a9", "#e9e4de", "#aecdfc", "#f99c22"], color_mode="fixed"),
+                brush=gr.Brush(colors=["#cae0a9", "#e9e4de", "#aecdfc", "#f99c22","#000000"], color_mode="fixed"),
                 type="pil"
             )
-            generate_btn = gr.Button("🚀 Generate Map")
+            generate_btn = gr.Button("Generate")
         with gr.Column():
             status = gr.Textbox(label="Status", interactive=False)
             output_img = gr.Image(label="Generated Aerial Map", height=400, width=400)
