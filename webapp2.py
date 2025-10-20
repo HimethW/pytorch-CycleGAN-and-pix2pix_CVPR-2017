@@ -84,7 +84,7 @@ with gr.Blocks(title="Sketch-to-Map Generator") as demo:
                 label="Draw or Upload a Sketch",
                 height=400,
                 width=400,
-                brush=gr.Brush(colors=["#cae0a9", "#e9e4de", "#aecdfc", "#f99c22","#000000"], color_mode="fixed"),
+                brush=gr.Brush(colors=["#cae0a9", "#e9e4de", "#aecdfc", "#f99c22","#000000"], color_mode="fixed",default_size=2),
                 type="pil"
             )
             generate_btn = gr.Button("Generate")
