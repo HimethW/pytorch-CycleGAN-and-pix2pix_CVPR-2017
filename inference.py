@@ -21,7 +21,7 @@ def run_inference():
     num_test = 5
     direction = "AtoB"
 
-    # ---------------------- Options Setup ----------------------
+    #  Options Setup 
     opt = TestOptions().parse()
     opt.dataroot = input_dir
     opt.name = model_name
@@ -38,7 +38,7 @@ def run_inference():
     opt.num_threads = 0
     opt.model_suffix = ''
 
-    # ---------------------- Create Dataset and Model ----------------------
+    # Create Dataset and Model
     dataset = create_dataset(opt)
     model = create_model(opt)
     model.setup(opt)
@@ -46,7 +46,7 @@ def run_inference():
 
     os.makedirs(output_dir, exist_ok=True)
 
-    # ---------------------- Run Inference ----------------------
+    #  Run Inference 
     for i, data in enumerate(dataset):
         if i >= num_test:
             break
@@ -76,10 +76,6 @@ def pad_single_image(input_path, output_path):
     # Paste original image on the left
     new_img.paste(img, (0, 0))
 
-    # Optional: fill the right side with same image to preserve context
-    # new_img.paste(img, (w, 0))
-
-    # Save back to input folder (overwrite or new path)
     new_img.save(output_path)
     print(f" Padded image saved: {output_path}")
 

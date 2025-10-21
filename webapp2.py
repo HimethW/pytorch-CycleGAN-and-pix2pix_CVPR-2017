@@ -74,9 +74,9 @@ def generate_map(input_image):
 
 
 # --- UI ---
-with gr.Blocks(title="Sketch-to-Map Generator") as demo:
+with gr.Blocks(title="Sketch-to-image Generator") as demo:
     gr.Markdown("## Web Generator")
-    gr.Markdown("Draw or upload a sketch. The model will generate an aerial map.")
+    gr.Markdown("Draw or upload a sketch.")
 
     with gr.Row():
         with gr.Column():
